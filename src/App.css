@@ -1,0 +1,134 @@
+:root {
+  /* Light theme (default) */
+  --bg-primary: #E5EAF2;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #F0F4FA;
+  --bg-interactive: #FAFBFD;
+  --color-primary: #0F2440;
+  --color-secondary: #486581;
+  --color-tertiary: #8395A7;
+  --border-primary: #D0D9E4;
+  --border-secondary: #E3E8EF;
+  --border-tertiary: #B8C4D8;
+  --accent-primary: #1B5ABC;
+  --accent-primary-hover: #1347A0;
+  --accent-secondary: #E6F0FF;
+  --accent-secondary-hover: #D3E5FD;
+  --accent-success: #26A65B;
+  --accent-success-hover: #218c4e;
+  --accent-warning: #F59E0B;
+  --accent-danger: #CF2E2E;
+  --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 3px 8px rgba(0, 0, 0, 0.12);
+  --shadow-strong: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark theme */
+.dark-theme {
+  --bg-primary: #1A202C;
+  --bg-secondary: #2D3748;
+  --bg-tertiary: #374151;
+  --bg-interactive: #323C4F;
+  --color-primary: #E2E8F0;
+  --color-secondary: #A0AEC0;
+  --color-tertiary: #718096;
+  --border-primary: #4A5568;
+  --border-secondary: #2D3748;
+  --border-tertiary: #4A5568;
+  --accent-primary: #4299E1;
+  --accent-primary-hover: #3182CE;
+  --accent-secondary: #2C5282;
+  --accent-secondary-hover: #3182CE;
+  --accent-success: #48BB78;
+  --accent-success-hover: #38A169;
+  --accent-warning: #F6AD55;
+  --accent-danger: #F56565;
+  --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-medium: 0 3px 8px rgba(0, 0, 0, 0.3);
+  --shadow-strong: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--color-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Add some basic reset styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Draft.js Editor Customizations */
+.DraftEditor-root {
+  min-height: 200px;
+}
+
+.public-DraftEditorPlaceholder-root {
+  color: var(--color-tertiary);
+  position: absolute;
+}
+
+.public-DraftEditor-content {
+  min-height: 200px;
+}
+
+/* General form styling */
+input, button {
+  font-size: 16px;
+}
+
+a {
+  color: var(--accent-primary);
+}
+
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  background-color: var(--bg-secondary);
+  color: var(--color-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-medium);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-strong);
+}
+
+.theme-toggle svg {
+  width: 24px;
+  height: 24px;
+}

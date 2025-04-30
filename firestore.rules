@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow all operations for admin testing (TEMPORARY)
+    // Remove this in production!
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // The rules below can be uncommented when you're ready to implement proper security
+    // Currently all authenticated users have full access to simplify debugging
+    
+    /* 
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if the user is the owner of a document
+    function isOwner(resource) {
+      return isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Helper function to check if the user is a collaborator on a document
+    function isCollaborator(resource) {
+      return isAuthenticated() && 
+        (resource.data.collaborators.hasAny([request.auth.uid]) || 
+         (request.auth.token.email != null && 
+          resource.data.collaborators.hasAny([request.auth.token.email.toLowerCase()])));
+    }
+    
+    // Helper function to determine if a user has access to the referenced document
+    function hasDocumentAccess(documentId) {
+      let docRef = get(/databases/$(database)/documents/documents/$(documentId));
+      return isAuthenticated() && 
+        (docRef.data.ownerId == request.auth.uid || 
+         docRef.data.collaborators.hasAny([request.auth.uid]) ||
+         (request.auth.token.email != null && 
+          docRef.data.collaborators.hasAny([request.auth.token.email.toLowerCase()])));
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Only allow the user to update their own profile
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Pending collaborators collection
+    match /pendingCollaborators/{pendingId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Documents collection rules
+    match /documents/{documentId} {
+      // Allow read if the user is either owner or collaborator
+      allow read: if isAuthenticated() && 
+                    (resource.data.ownerId == request.auth.uid || 
+                     resource.data.collaborators.hasAny([request.auth.uid]) ||
+                     (request.auth.token.email != null && 
+                      resource.data.collaborators.hasAny([request.auth.token.email.toLowerCase()])));
+      
+      // Allow create if authenticated and setting themselves as owner
+      allow create: if isAuthenticated() && 
+                      request.resource.data.ownerId == request.auth.uid &&
+                      request.resource.data.collaborators.hasAny([request.auth.uid]);
+      
+      // Allow update with different rules for owners vs collaborators
+      allow update: if isAuthenticated() && (
+                      // Owners can update anything
+                      isOwner(resource) ||
+                      // Collaborators can only update content and updatedAt
+                      (isCollaborator(resource) && 
+                       (request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['content', 'updateAt']))
+                      )
+                    );
+      
+      // Only owners can delete documents
+      allow delete: if isAuthenticated() && isOwner(resource);
+      
+      // Presence subcollection - allow anyone with access to the document to read/write to presence
+      match /presence/{userId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+    
+    // Versions collection rules
+    match /versions/{versionId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Comments collection rules
+    match /comments/{commentId} {
+      // Allow read if the user has access to the document
+      allow read: if isAuthenticated() && hasDocumentAccess(resource.data.documentId);
+      
+      // Allow create if authenticated and setting themselves as creator
+      allow create: if isAuthenticated() && 
+                     request.resource.data.createdBy == request.auth.uid &&
+                     hasDocumentAccess(request.resource.data.documentId);
+      
+      // Allow update only by the creator
+      allow update: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+      
+      // Allow users to resolve others' comments
+      allow update: if isAuthenticated() && 
+                     hasDocumentAccess(resource.data.documentId) &&
+                     request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['resolved', 'resolvedBy', 'resolvedByEmail', 'resolvedAt', 'updatedAt']);
+      
+      // Only creators can delete their comments
+      allow delete: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+    }
+    
+    // Drawings collection rules
+    match /drawings/{drawingId} {
+      // Allow read if the user has access to the document
+      allow read: if isAuthenticated() && hasDocumentAccess(resource.data.documentId);
+      
+      // Allow create if authenticated and setting themselves as creator
+      allow create: if isAuthenticated() && 
+                    request.resource.data.createdBy == request.auth.uid &&
+                    hasDocumentAccess(request.resource.data.documentId);
+      
+      // Any collaborator can update drawings
+      allow update: if isAuthenticated() && hasDocumentAccess(resource.data.documentId);
+      
+      // Only creators can delete their drawings
+      allow delete: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+    }
+    */
+  }
+} 
