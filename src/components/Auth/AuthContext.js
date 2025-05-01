@@ -150,6 +150,7 @@ export function AuthProvider({ children }) {
           });
         }
         
+        // Also fetch the full user profile
         const profileData = userDocSnap.exists() ? userDocSnap.data() : null;
         setUserProfile(profileData);
       } else {
@@ -160,9 +161,11 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
+    // Cleanup subscription on unmount
     return unsubscribe;
   }, []);
 
+  // Context value
   const value = {
     currentUser,
     userProfile,
@@ -184,28 +187,3 @@ export function AuthProvider({ children }) {
 }
 
 export { AuthContext };
-
-const [currentPage, setCurrentPage] = useState(1);
-const [totalPages, setTotalPages] = useState(1);
-const pageSize = 50; 
-
-
-useEffect(() => {
-  const loadDocumentPage = async () => {
-    try {
-      const metadata = await getDocumentMetadata(documentId);
-      const pages = Math.ceil(metadata.blockCount / pageSize);
-      setTotalPages(pages);
-
-      const pageContent = await getDocumentPage(documentId, currentPage, pageSize);
-  
-      if (pageContent) {
-        setEditorState(deserializeContent(pageContent));
-      }
-    } catch (error) {
-      console.error("Error loading document page:", error);
-    }
-  };
-  
-  loadDocumentPage();
-}, [documentId, currentPage]);

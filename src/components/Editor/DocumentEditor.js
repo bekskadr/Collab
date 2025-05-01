@@ -207,6 +207,14 @@ export default function DocumentEditor() {
   const fetchDocument = useCallback(async () => {
     try {
       const doc = await getDocument(documentId);
+      
+      if (!doc) {
+        console.error("Document not found");
+        setLoading(false);
+        setDocument({ title: 'Document not found', content: '' });
+        return;
+      }
+      
       setDocument(doc);
       if (doc.content) {
         // Handle both string and object formats for backward compatibility
@@ -227,6 +235,7 @@ export default function DocumentEditor() {
       setLoading(false);
     } catch (error) {
       console.error("Error loading document:", error);
+      setDocument({ title: 'Error loading document', content: '' });
       setLoading(false);
     }
   }, [documentId]);
@@ -451,7 +460,7 @@ export default function DocumentEditor() {
   return (
     <DocumentContainer>
       <Header>
-        <Title>{document.title}</Title>
+        <Title>{document?.title || 'Untitled Document'}</Title>
         <ActionButtons>
           <SaveButton 
             onClick={() => isDrawingMode 

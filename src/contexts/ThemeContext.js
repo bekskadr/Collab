@@ -2,8 +2,6 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
-export { ThemeContext };
-
 export const useTheme = () => useContext(ThemeContext);
 
 export function ThemeProvider({ children, value }) {
@@ -14,9 +12,9 @@ export function ThemeProvider({ children, value }) {
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode);
     if (darkMode) {
-      document.body.classList.add('dark-theme');
+      document.body.classList.add('dark-mode');
     } else {
-      document.body.classList.remove('dark-theme');
+      document.body.classList.remove('dark-mode');
     }
   }, [darkMode]);
 

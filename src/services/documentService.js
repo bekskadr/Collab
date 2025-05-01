@@ -30,16 +30,22 @@ export const createDocument = async (documentData) => {
     const userId = auth.currentUser.uid;
     const document = {
       ...documentData,
+      ownerId: userId,
       owner: userId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      sharedWith: []
+      createdAt: serverTimestamp(),
+      updateAt: serverTimestamp(),
+      collaborators: [userId]
     };
 
-    const docRef = doc(collection(db, 'documents'));
-    await setDoc(docRef, document);
-
-    return docRef.id;
+    const docRef = await addDoc(collection(db, 'documents'), document);
+    
+    // Return the complete document object with ID for the UI
+    return {
+      id: docRef.id,
+      ...document,
+      createdAt: new Date(),
+      updateAt: new Date()
+    };
   } catch (error) {
     console.error('Error creating document:', error);
     throw error;

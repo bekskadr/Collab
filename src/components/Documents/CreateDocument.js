@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../Auth/AuthContext';
 import { createDocument } from '../../services/documentService';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const CreateButton = styled.button`
@@ -110,6 +111,7 @@ const ErrorMessage = styled.div`
 
 function CreateDocument({ onDocumentCreated }) {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
@@ -127,9 +129,15 @@ function CreateDocument({ onDocumentCreated }) {
       };
       const newDoc = await createDocument(documentData);
       
-      onDocumentCreated(newDoc);
+      if (onDocumentCreated) {
+        onDocumentCreated(newDoc);
+      }
+      
       setTitle('');
       setIsModalOpen(false);
+      
+      // Navigate to the editor for the new document
+      navigate(`/documents/${newDoc.id}`);
     } catch (err) {
       setError('Failed to create document: ' + err.message);
     } finally {
