@@ -165,7 +165,7 @@ export default function VersionHistory({ documentId, onRestore, refreshCounter =
         setRestoringVersion(versionId);
         await restoreVersion(documentId, versionId);
         
-        // Refetch versions after restoration
+
         const history = await getVersionHistory(documentId);
         setVersions(history);
         

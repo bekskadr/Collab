@@ -1,5 +1,5 @@
 // src/components/Documents/DocumentList.js
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../Auth/AuthContext';
 import { getUserDocuments } from '../../services/documentService';
 import DocumentItem from './DocumentItem';
@@ -58,32 +58,30 @@ function DocumentList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchDocuments = useCallback(async () => {
-    try {
-      if (currentUser) {
-        const docs = await getUserDocuments(currentUser.uid);
-        // Sort documents by updateAt timestamp (newest first)
-        docs.sort((a, b) => {
-          const timeA = a.updateAt ? (a.updateAt.toMillis ? a.updateAt.toMillis() : new Date(a.updateAt).getTime()) : 0;
-          const timeB = b.updateAt ? (b.updateAt.toMillis ? b.updateAt.toMillis() : new Date(b.updateAt).getTime()) : 0;
-          return timeB - timeA;
-        });
-        setDocuments(docs);
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        if (currentUser) {
+          const docs = await getUserDocuments(currentUser.uid);
+       
+          docs.sort((a, b) => {
+            const timeA = a.updateAt ? a.updateAt.toMillis() : 0;
+            const timeB = b.updateAt ? b.updateAt.toMillis() : 0;
+            return timeB - timeA;
+          });
+          setDocuments(docs);
+        }
+      } catch (err) {
+        setError('Failed to load documents: ' + err.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Failed to load documents: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    };
+    fetchDocuments();
   }, [currentUser]);
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
-
   const handleDocumentCreated = (newDocument) => {
-    // Force documents refresh after creation
-    fetchDocuments();
+    setDocuments(prevDocs => [newDocument, ...prevDocs]);
   };
 
   const handleDocumentDeleted = (documentId) => {

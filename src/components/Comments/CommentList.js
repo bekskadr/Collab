@@ -99,7 +99,7 @@ const CommentList = ({ documentId }) => {
       try {
         setLoading(true);
         
-        // Choose which fetch method based on filter
+        
         const fetchedComments = showResolved 
           ? await getAllDocumentComments(documentId)
           : await getDocumentComments(documentId);
@@ -120,12 +120,12 @@ const CommentList = ({ documentId }) => {
   }, [documentId, showResolved, refreshTrigger]);
 
   const handleCommentAdded = () => {
-    // Trigger a refresh of the comments
+    
     setRefreshTrigger(prev => prev + 1);
   };
 
   const handleCommentUpdated = () => {
-    // Trigger a refresh of the comments
+    
     setRefreshTrigger(prev => prev + 1);
   };
   

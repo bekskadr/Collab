@@ -1,4 +1,4 @@
-import { db, auth, storage } from '../firebase';
+import { db, auth } from '../firebase';
 import { 
   collection, 
   addDoc, 
@@ -16,7 +16,6 @@ import {
   serverTimestamp,
   arrayRemove
 } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { getUserIdByEmail } from './userService';
 import { createVersion } from './versionService';
 
@@ -27,349 +26,34 @@ export const createDocument = async (documentData) => {
       throw new Error('User must be authenticated');
     }
 
-    const userId = auth.currentUser.uid;
-    const document = {
-      ...documentData,
-      ownerId: userId,
-      owner: userId,
-      createdAt: serverTimestamp(),
-      updateAt: serverTimestamp(),
-      collaborators: [userId]
-    };
-
-    const docRef = await addDoc(collection(db, 'documents'), document);
+    // Ensure title is processed correctly
+    const title = documentData && documentData.title ? documentData.title.trim() : 'Untitled Document';
     
-    // Return the complete document object with ID for the UI
+    // Create timestamps now to reuse in return value
+    const now = Timestamp.now();
+    
+    const docRef = await addDoc(collection(db, 'documents'), {
+      title: title,
+      content: documentData.content || '',
+      ownerId: auth.currentUser.uid,
+      collaborators: [auth.currentUser.uid],
+      createAt: now,
+      updateAt: now
+    });
+
+    // Return the created document with the same data structure
     return {
       id: docRef.id,
-      ...document,
-      createdAt: new Date(),
-      updateAt: new Date()
+      title: title,
+      content: documentData.content || '',
+      ownerId: auth.currentUser.uid,
+      collaborators: [auth.currentUser.uid],
+      createAt: now,
+      updateAt: now
     };
   } catch (error) {
     console.error('Error creating document:', error);
     throw error;
-  }
-};
-
-// Fetch all documents for a user (both owned and shared)
-export const fetchUserDocuments = async (userId) => {
-  try {
-    // Get documents owned by the user
-    const ownedDocsQuery = query(
-      collection(db, 'documents'),
-      where('owner', '==', userId)
-    );
-    const ownedDocsSnapshot = await getDocs(ownedDocsQuery);
-    
-    // Get documents shared with the user
-    const sharedDocsQuery = query(
-      collection(db, 'documents'),
-      where('sharedWith', 'array-contains', { email: auth.currentUser.email })
-    );
-    const sharedDocsSnapshot = await getDocs(sharedDocsQuery);
-    
-    // Combine both sets of documents
-    const documents = [];
-    
-    ownedDocsSnapshot.forEach((doc) => {
-      documents.push({ id: doc.id, ...doc.data() });
-    });
-    
-    sharedDocsSnapshot.forEach((doc) => {
-      // Only add if not already added (should not happen, but just in case)
-      if (!documents.some(d => d.id === doc.id)) {
-        documents.push({ id: doc.id, ...doc.data() });
-      }
-    });
-    
-    return documents;
-  } catch (error) {
-    console.error('Error fetching documents:', error);
-    return [];
-  }
-};
-
-// Fetch a single document by ID
-export const fetchDocument = async (documentId) => {
-  try {
-    const docRef = doc(db, 'documents', documentId);
-    const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error fetching document:', error);
-    return null;
-  }
-};
-
-// Update a document
-export const updateDocument = async (documentId, updates) => {
-  try {
-    const docRef = doc(db, 'documents', documentId);
-    
-    // Add updated timestamp
-    const updatedData = {
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    
-    await updateDoc(docRef, updatedData);
-    
-    // Create a version history entry
-    if (updates.content) {
-      const versionRef = doc(collection(db, 'documents', documentId, 'versions'));
-      await setDoc(versionRef, {
-        content: updates.content,
-        createdAt: new Date().toISOString(),
-        createdBy: auth.currentUser ? auth.currentUser.email : 'Unknown'
-      });
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error updating document:', error);
-    throw error;
-  }
-};
-
-// Delete a document
-export const deleteDocument = async (documentId) => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('User must be authenticated');
-    }
-    
-    // Check if the current user is the owner
-    const document = await fetchDocument(documentId);
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    if (document.owner !== auth.currentUser.uid) {
-      throw new Error('Only the owner can delete a document');
-    }
-    
-    await deleteDoc(doc(db, 'documents', documentId));
-    
-    return { success: true, documentId };
-  } catch (error) {
-    console.error('Error deleting document:', error);
-    throw error;
-  }
-};
-
-// Share a document with another user
-export const shareDocument = async (documentId, email, permission) => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('User must be authenticated');
-    }
-    
-    const docRef = doc(db, 'documents', documentId);
-    
-    // First check if document exists and current user is the owner
-    const document = await fetchDocument(documentId);
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    if (document.owner !== auth.currentUser.uid) {
-      throw new Error('Only the owner can share a document');
-    }
-    
-    // Check if user is already in the shared list
-    const existingShare = document.sharedWith?.find(share => share.email === email);
-    
-    if (existingShare) {
-      // Update permission if user already has access
-      await updateDoc(docRef, {
-        sharedWith: document.sharedWith.map(share => 
-          share.email === email ? { email, permission } : share
-        )
-      });
-    } else {
-      // Add new user to shared list
-      await updateDoc(docRef, {
-        sharedWith: arrayUnion({ email, permission })
-      });
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error sharing document:', error);
-    throw error;
-  }
-};
-
-// Remove access for a user
-export const removeAccess = async (documentId, email) => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('User must be authenticated');
-    }
-    
-    const docRef = doc(db, 'documents', documentId);
-    
-    // First check if document exists and current user is the owner
-    const document = await fetchDocument(documentId);
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    if (document.owner !== auth.currentUser.uid) {
-      throw new Error('Only the owner can modify sharing settings');
-    }
-    
-    // Remove the user from the shared list
-    const userShare = document.sharedWith?.find(share => share.email === email);
-    
-    if (userShare) {
-      await updateDoc(docRef, {
-        sharedWith: arrayRemove(userShare)
-      });
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error removing access:', error);
-    throw error;
-  }
-};
-
-// Save drawing data
-export const saveDrawing = async (documentId, drawingData) => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('User must be authenticated');
-    }
-    
-    // Upload drawing to storage
-    const storageRef = ref(storage, `drawings/${documentId}`);
-    await uploadString(storageRef, drawingData, 'data_url');
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving drawing:', error);
-    throw error;
-  }
-};
-
-// Get drawing data
-export const getDrawing = async (documentId) => {
-  try {
-    // Get drawing from storage
-    const storageRef = ref(storage, `drawings/${documentId}`);
-    const drawingUrl = await getDownloadURL(storageRef);
-    
-    return drawingUrl;
-  } catch (error) {
-    // If the drawing doesn't exist yet, that's okay
-    console.log('No drawing found:', error);
-    return null;
-  }
-};
-
-// Add a comment to a document
-export const addComment = async (documentId, text) => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('User must be authenticated');
-    }
-    
-    const commentRef = doc(collection(db, 'documents', documentId, 'comments'));
-    
-    await setDoc(commentRef, {
-      text,
-      author: auth.currentUser.email,
-      authorId: auth.currentUser.uid,
-      createdAt: new Date().toISOString()
-    });
-    
-    return { id: commentRef.id };
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    throw error;
-  }
-};
-
-// Get comments for a document
-export const fetchDocumentComments = async (documentId) => {
-  try {
-    const commentsSnapshot = await getDocs(
-      collection(db, 'documents', documentId, 'comments')
-    );
-    
-    const comments = [];
-    commentsSnapshot.forEach((doc) => {
-      comments.push({ id: doc.id, ...doc.data() });
-    });
-    
-    // Sort by creation date
-    return comments.sort((a, b) => 
-      new Date(a.createdAt) - new Date(b.createdAt)
-    );
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    return [];
-  }
-};
-
-// Delete a comment
-export const deleteComment = async (documentId, commentId) => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error('User must be authenticated');
-    }
-    
-    // First check if the user is the author or document owner
-    const commentRef = doc(db, 'documents', documentId, 'comments', commentId);
-    const commentSnap = await getDoc(commentRef);
-    
-    if (!commentSnap.exists()) {
-      throw new Error('Comment not found');
-    }
-    
-    const comment = commentSnap.data();
-    const document = await fetchDocument(documentId);
-    
-    // Only the comment author or document owner can delete the comment
-    if (comment.authorId !== auth.currentUser.uid && document.owner !== auth.currentUser.uid) {
-      throw new Error('You do not have permission to delete this comment');
-    }
-    
-    await deleteDoc(commentRef);
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting comment:', error);
-    throw error;
-  }
-};
-
-// Get version history for a document
-export const getVersionHistory = async (documentId) => {
-  try {
-    const versionsSnapshot = await getDocs(
-      collection(db, 'documents', documentId, 'versions')
-    );
-    
-    const versions = [];
-    versionsSnapshot.forEach((doc) => {
-      versions.push({ id: doc.id, ...doc.data() });
-    });
-    
-    // Sort by creation date (newest first)
-    return versions.sort((a, b) => 
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
-  } catch (error) {
-    console.error('Error fetching version history:', error);
-    return [];
   }
 };
 
@@ -488,16 +172,35 @@ export const updateDocumentContent = async (documentId, content) => {
   }
 };
 
-// Update document title
-export const updateDocumentTitle = async (documentId, title) => {
+// Delete a document
+export const deleteDocument = async (documentId) => {
   try {
+    if (!auth.currentUser) {
+      throw new Error('User must be authenticated');
+    }
+    
+    // Verify document exists and user is the owner
     const docRef = doc(db, 'documents', documentId);
-    await updateDoc(docRef, {
-      title,
-      updateAt: Timestamp.now()
-    });
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error('Document not found');
+    }
+    
+    const docData = docSnap.data();
+    if (docData.ownerId !== auth.currentUser.uid) {
+      throw new Error('Only the document owner can delete this document');
+    }
+    
+    // Delete document
+    await deleteDoc(docRef);
+    
+    // Also clean up related collections if needed
+    // E.g. delete presence subcollection, versions, etc.
+    
+    return { success: true, documentId };
   } catch (error) {
-    console.error('Error updating document title:', error);
+    console.error('Error deleting document:', error);
     throw error;
   }
 };
@@ -554,6 +257,20 @@ export const shareDocumentByEmail = async (documentId, email) => {
     return { success: true, email: normalizedEmail };
   } catch (error) {
     console.error('Error sharing document by email:', error);
+    throw error;
+  }
+};
+
+// Update document title
+export const updateDocumentTitle = async (documentId, title) => {
+  try {
+    const docRef = doc(db, 'documents', documentId);
+    await updateDoc(docRef, {
+      title,
+      updateAt: Timestamp.now()
+    });
+  } catch (error) {
+    console.error('Error updating document title:', error);
     throw error;
   }
 }; 

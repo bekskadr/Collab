@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-import './Editor.css'; // Import custom editor styling
+import './Editor.css'; 
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthContext';
 import { getDocument, updateDocumentContent } from '../../services/documentService';
@@ -207,17 +207,9 @@ export default function DocumentEditor() {
   const fetchDocument = useCallback(async () => {
     try {
       const doc = await getDocument(documentId);
-      
-      if (!doc) {
-        console.error("Document not found");
-        setLoading(false);
-        setDocument({ title: 'Document not found', content: '' });
-        return;
-      }
-      
       setDocument(doc);
       if (doc.content) {
-        // Handle both string and object formats for backward compatibility
+        
         let contentState;
         if (typeof doc.content === 'string') {
           try {
@@ -227,7 +219,7 @@ export default function DocumentEditor() {
             contentState = EditorState.createEmpty().getCurrentContent();
           }
         } else {
-          // If content is already an object
+
           contentState = convertFromRaw(doc.content);
         }
         setEditorState(EditorState.createWithContent(contentState));
@@ -235,24 +227,23 @@ export default function DocumentEditor() {
       setLoading(false);
     } catch (error) {
       console.error("Error loading document:", error);
-      setDocument({ title: 'Error loading document', content: '' });
       setLoading(false);
     }
   }, [documentId]);
 
-  // Fetch drawings for this document
+  
   const fetchDrawings = useCallback(async () => {
     try {
       const fetchedDrawings = await getDocumentDrawings(documentId);
       setDrawings(fetchedDrawings);
       
-      // If there are drawings, set the current drawing to the most recent one by this user
+      
       if (fetchedDrawings.length > 0 && currentUser) {
         const userDrawing = fetchedDrawings.find(d => d.createdBy === currentUser.uid);
         if (userDrawing) {
           setCurrentDrawingId(userDrawing.id);
         } else {
-          // If user doesn't have their own drawing yet, clear the current drawing ID
+          
           setCurrentDrawingId(null);
         }
       }
@@ -267,37 +258,36 @@ export default function DocumentEditor() {
   }, [fetchDocument, fetchDrawings]);
 
   const handleEditorChange = (newEditorState) => {
-    // Don't update the editor state if in drawing mode
+    
     if (isDrawingMode) return;
     
     setEditorState(newEditorState);
     
-    // Set unsaved changes flag
+    
     setHasUnsavedChanges(true);
 
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
-    // Auto-save feature still exists but now manual saving is also available
+    
     debounceTimeout.current = setTimeout(async () => {
       const contentState = newEditorState.getCurrentContent();
       const rawContent = convertToRaw(contentState);
       
-      // Don't save if there are no changes
       const currentContent = editorState.getCurrentContent();
       if (currentContent === contentState) {
         return;
       }
       
-      // Only auto-save if that feature is enabled
-      if (true) { // You could add a user preference here later
+     
+      if (true) { 
         await saveContent(rawContent);
       }
-    }, 30000); // Now autosaves after 30 seconds of inactivity
+    }, 30000); 
   };
 
-  // New function to handle manual saves
+  
   const saveContent = async (contentToSave = null) => {
     try {
       setSaveStatus('saving');
@@ -307,25 +297,25 @@ export default function DocumentEditor() {
         clearTimeout(hideSaveIndicatorTimeout.current);
       }
       
-      // Use provided content or get current content
+      
       const content = contentToSave || convertToRaw(editorState.getCurrentContent());
       
-      // Save the content
+      
       await updateDocumentContent(documentId, content);
       
-      // Update last save time
+     
       lastSaveTime.current = new Date();
       
-      // Update states
+      
       setSaveStatus('saved');
       setHasUnsavedChanges(false);
       
-      // Trigger version history refresh if showing
+      
       if (showVersionHistory) {
         setVersionRefreshCounter(prev => prev + 1);
       }
       
-      // Hide save indicator after 3 seconds
+      
       hideSaveIndicatorTimeout.current = setTimeout(() => {
         setShowSaveIndicator(false);
       }, 3000);
@@ -333,7 +323,7 @@ export default function DocumentEditor() {
       console.error("Error saving document:", error);
       setSaveStatus('unsaved');
       
-      // Hide save indicator after 3 seconds
+      
       hideSaveIndicatorTimeout.current = setTimeout(() => {
         setShowSaveIndicator(false);
       }, 3000);
@@ -354,7 +344,7 @@ export default function DocumentEditor() {
         clearTimeout(hideSaveIndicatorTimeout.current);
       }
       
-      // Handle special drawing commands
+      
       if (drawing.clearAll) {
         if (currentDrawingId) {
           await updateDrawing(currentDrawingId, { paths: [] });
@@ -362,7 +352,7 @@ export default function DocumentEditor() {
         }
         setSaveStatus('saved');
         
-        // Hide save indicator after 3 seconds
+        
         hideSaveIndicatorTimeout.current = setTimeout(() => {
           setShowSaveIndicator(false);
         }, 3000);
@@ -379,7 +369,7 @@ export default function DocumentEditor() {
         }
         setSaveStatus('saved');
         
-        // Hide save indicator after 3 seconds
+        
         hideSaveIndicatorTimeout.current = setTimeout(() => {
           setShowSaveIndicator(false);
         }, 3000);
@@ -387,7 +377,7 @@ export default function DocumentEditor() {
       }
       
       if (drawing.saveDrawing) {
-        // Special case for manual save
+        
         if (currentDrawingId && drawings.length > 0) {
           const userDrawing = drawings.find(d => d.id === currentDrawingId);
           if (userDrawing) {
@@ -399,23 +389,23 @@ export default function DocumentEditor() {
         }
         setSaveStatus('saved');
         
-        // Hide save indicator after 3 seconds
+        
         hideSaveIndicatorTimeout.current = setTimeout(() => {
           setShowSaveIndicator(false);
         }, 3000);
         return;
       }
       
-      // Normal path drawing handling
+      
       if (!currentDrawingId) {
-        // Create a new drawing record if this is the first path
+        
         const drawingId = await saveDrawing(documentId, {
           paths: [drawing]
         });
         setCurrentDrawingId(drawingId);
         await fetchDrawings();
       } else {
-        // Update the existing drawing with the new path
+        
         const existingDrawing = drawings.find(d => d.id === currentDrawingId);
         if (existingDrawing) {
           const updatedPaths = [...(existingDrawing.paths || []), drawing];
@@ -424,7 +414,7 @@ export default function DocumentEditor() {
           });
           await fetchDrawings();
         } else {
-          // If somehow the drawing ID is invalid, create a new one
+          
           const drawingId = await saveDrawing(documentId, {
             paths: [drawing]
           });
@@ -435,7 +425,7 @@ export default function DocumentEditor() {
       
       setSaveStatus('saved');
       
-      // Hide save indicator after 3 seconds
+      
       hideSaveIndicatorTimeout.current = setTimeout(() => {
         setShowSaveIndicator(false);
       }, 3000);
@@ -443,14 +433,14 @@ export default function DocumentEditor() {
       console.error("Error saving drawing:", error);
       setSaveStatus('unsaved');
       
-      // Hide save indicator after 3 seconds
+     
       hideSaveIndicatorTimeout.current = setTimeout(() => {
         setShowSaveIndicator(false);
       }, 3000);
     }
   };
 
-  // Handler for when drawing mode changes
+  
   const handleDrawingModeChange = (drawingMode) => {
     setIsDrawingMode(drawingMode);
   };
@@ -460,7 +450,7 @@ export default function DocumentEditor() {
   return (
     <DocumentContainer>
       <Header>
-        <Title>{document?.title || 'Untitled Document'}</Title>
+        <Title>{document.title}</Title>
         <ActionButtons>
           <SaveButton 
             onClick={() => isDrawingMode 
@@ -508,7 +498,7 @@ export default function DocumentEditor() {
           onClick={() => {
             setShowVersionHistory(!showVersionHistory);
             if (!showVersionHistory) {
-              // Refresh version history when opening
+              
               setVersionRefreshCounter(prev => prev + 1);
             }
           }}
@@ -529,7 +519,7 @@ export default function DocumentEditor() {
           active={showDrawing}
           onClick={() => {
             if (showDrawing && isDrawingMode) {
-              // If we're hiding drawing tool while in drawing mode, exit drawing mode
+              
               setIsDrawingMode(false);
             }
             setShowDrawing(!showDrawing);

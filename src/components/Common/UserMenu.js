@@ -97,7 +97,7 @@ const UserMenu = () => {
     }
   };
   
-  // Close menu when clicking outside
+ 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -114,7 +114,7 @@ const UserMenu = () => {
     };
   }, [isOpen]);
   
-  // Get first letter of email for avatar
+
   const getInitial = () => {
     if (!currentUser || !currentUser.email) return '?';
     return currentUser.email.charAt(0).toUpperCase();

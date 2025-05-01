@@ -9,7 +9,7 @@ import {
   } from 'firebase/firestore';
   import { db } from '../firebase';
   
-  // Create a new version snapshot
+ 
   export async function createVersionSnapshot(documentId, content, userId) {
     const versionsCollection = collection(db, 'documents', documentId, 'versions');
     
@@ -20,7 +20,7 @@ import {
     });
   }
   
-  // Get version history for a document
+ 
   export async function getVersionHistory(documentId) {
     const versionsCollection = collection(db, 'documents', documentId, 'versions');
     const q = query(
@@ -35,16 +35,15 @@ import {
     }));
   }
   
-  // Restore a specific version
+
   export async function restoreVersion(documentId, versionId) {
-    // First get the version data
+ 
     const versionRef = doc(db, 'documents', documentId, 'versions', versionId);
     const versionSnap = await getDoc(versionRef);
     
     if (versionSnap.exists()) {
       const { content } = versionSnap.data();
       
-      // Update the current document with this version's content
       const docRef = doc(db, 'documents', documentId);
       return updateDoc(docRef, {
         content,

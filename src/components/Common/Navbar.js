@@ -17,7 +17,7 @@ function Navbar() {
     }
   };
 
-  // Show a simplified navbar while loading
+  
   if (loading) {
     return (
       <nav className="navbar">
@@ -26,7 +26,7 @@ function Navbar() {
     );
   }
   
-  // If no user is authenticated, show login/register links
+  
   if (!currentUser) {
     return (
       <nav className="navbar">
@@ -39,7 +39,7 @@ function Navbar() {
     );
   }
   
-  // If user is authenticated, show user-specific content
+
   return (
     <nav className="navbar">
       <Link to="/" className="logo">Collaborative Editor</Link>

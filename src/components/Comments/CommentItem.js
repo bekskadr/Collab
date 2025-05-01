@@ -173,7 +173,7 @@ const CommentItem = ({ comment, onCommentUpdated }) => {
   const [editText, setEditText] = useState(comment.text);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Check if current user is the comment author
+  
   const isAuthor = currentUser && comment.createdBy === currentUser.uid;
   
   const handleEdit = () => {

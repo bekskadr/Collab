@@ -8,12 +8,11 @@ import {
 import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
-// Register a new user
+
 export const signup = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Create a user document in Firestore
+   
     await setDoc(doc(db, 'users', userCredential.user.uid), {
       email: email,
       createdAt: new Date().toISOString(),
@@ -27,7 +26,6 @@ export const signup = async (email, password) => {
   }
 };
 
-// Log in an existing user
 export const login = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -38,7 +36,7 @@ export const login = async (email, password) => {
   }
 };
 
-// Log out the current user
+
 export const logout = async () => {
   try {
     await signOut(auth);
@@ -49,7 +47,7 @@ export const logout = async () => {
   }
 };
 
-// Reset password
+
 export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email);

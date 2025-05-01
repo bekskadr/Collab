@@ -37,7 +37,6 @@ function UserPresence({ documentId }) {
   useEffect(() => {
     if (!documentId || !currentUser) return;
     
-    // Create a reference to this user's presence
     const userPresenceRef = doc(
       db, 
       'documents', 
@@ -46,7 +45,6 @@ function UserPresence({ documentId }) {
       currentUser.uid
     );
     
-    // Add this user to presence collection
     const updatePresence = async () => {
       try {
         await setDoc(userPresenceRef, {
@@ -61,11 +59,11 @@ function UserPresence({ documentId }) {
       }
     };
     
-    // Update user presence immediately and then every 30 seconds
+   
     updatePresence();
     const presenceInterval = setInterval(updatePresence, 30000);
     
-    // Listen for all users currently active on this document
+
     const presenceCollectionRef = collection(db, 'documents', documentId, 'presence');
     let unsubscribePresence;
     
@@ -86,23 +84,22 @@ function UserPresence({ documentId }) {
       setError('Failed to set up presence listener');
     }
     
-    // Clean up when unmounting
+
     return () => {
       clearInterval(presenceInterval);
       if (unsubscribePresence) {
         unsubscribePresence();
       }
       
-      // Remove user from presence collection when they leave
+    
       deleteDoc(userPresenceRef).catch(err => {
         console.error('Error removing presence:', err);
       });
     };
   }, [documentId, currentUser]);
   
-  // Generate a color based on user ID to ensure consistency
   function getRandomColor(userId) {
-    // Simple hash function to convert userId to a color
+
     const hash = userId.split('').reduce((acc, char) => {
       return char.charCodeAt(0) + ((acc << 5) - acc);
     }, 0);
@@ -111,7 +108,6 @@ function UserPresence({ documentId }) {
     return `hsl(${hue}, 70%, 50%)`;
   }
   
-  // Get first letter of name for avatar
   function getInitial(name) {
     return name ? name.charAt(0).toUpperCase() : '?';
   }

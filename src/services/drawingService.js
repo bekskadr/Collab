@@ -49,14 +49,13 @@ export const updateDrawing = async (drawingId, updateData) => {
     
     const drawingRef = doc(db, "drawings", drawingId);
     
-    // Verify the drawing exists and belongs to the current user
+ 
     const drawingDoc = await getDoc(drawingRef);
     if (!drawingDoc.exists()) {
       throw new Error("Drawing not found");
     }
     
-    // Allow update even if this is a shared document
-    // This ensures shared users can also update their drawings
+
     await updateDoc(drawingRef, updateData);
     
     return drawingId;

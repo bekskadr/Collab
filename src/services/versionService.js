@@ -20,7 +20,7 @@ import {
  */
 export const createVersion = async (documentId, versionData) => {
   try {
-    // Get the current user
+
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
@@ -78,11 +78,11 @@ export const getVersionHistory = async (documentId) => {
  */
 export const restoreVersion = async (documentId, versionId) => {
   try {
-    // Get the current user
+
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
-    // Get the version to restore
+
     const versionRef = doc(db, 'versions', versionId);
     const versionSnap = await getDoc(versionRef);
     
@@ -91,8 +91,7 @@ export const restoreVersion = async (documentId, versionId) => {
     }
     
     const versionData = versionSnap.data();
-    
-    // Get the document to update
+
     const docRef = doc(db, 'documents', documentId);
     const docSnap = await getDoc(docRef);
     
@@ -102,7 +101,7 @@ export const restoreVersion = async (documentId, versionId) => {
 
     const docData = docSnap.data();
     
-    // Create a version of the current state before restoring
+ 
     await createVersion(documentId, {
       content: docData.content,
       updatedBy: user.email,
@@ -111,7 +110,7 @@ export const restoreVersion = async (documentId, versionId) => {
       isRestorationPoint: true
     });
     
-    // Update the document with the version's content
+
     await updateDoc(docRef, {
       content: versionData.content,
       updateAt: serverTimestamp()

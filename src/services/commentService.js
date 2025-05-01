@@ -21,7 +21,7 @@ import {
  */
 export const createComment = async (documentId, commentData) => {
   try {
-    // Get the current user
+  
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
@@ -29,8 +29,8 @@ export const createComment = async (documentId, commentData) => {
     const commentDoc = await addDoc(commentsRef, {
       documentId,
       text: commentData.text,
-      position: commentData.position || null, // Can be null for general comments
-      selectionInfo: commentData.selectionInfo || null, // For storing selection range
+      position: commentData.position || null, 
+      selectionInfo: commentData.selectionInfo || null, 
       createdBy: user.uid,
       createdByEmail: user.email,
       createdAt: serverTimestamp(),
@@ -124,13 +124,13 @@ export const updateComment = async (commentId, commentData) => {
       throw new Error('Comment not found');
     }
     
-    // Verify ownership (optional - you may want to allow collaborators to edit comments too)
+    
     const commentDoc = commentSnap.data();
     if (commentDoc.createdBy !== user.uid) {
       throw new Error('Only the comment author can edit this comment');
     }
     
-    // Update the comment
+   
     await updateDoc(commentRef, {
       ...commentData,
       updatedAt: serverTimestamp()
@@ -188,7 +188,7 @@ export const deleteComment = async (commentId) => {
       throw new Error('Comment not found');
     }
     
-    // Verify ownership
+   
     const commentDoc = commentSnap.data();
     if (commentDoc.createdBy !== user.uid) {
       throw new Error('Only the comment author can delete this comment');

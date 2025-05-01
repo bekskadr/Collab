@@ -12,14 +12,14 @@ import {
   } from 'firebase/firestore';
   import { db } from '../firebase';
   
-  // Collection reference
+  
   const documentsCollection = collection(db, 'documents');
   
-  // Create a new document
+  
   export async function createDocument(title, userId) {
     return addDoc(documentsCollection, {
       title,
-      content: JSON.stringify({ blocks: [], entityMap: {} }), // Empty Draft.js content
+      content: JSON.stringify({ blocks: [], entityMap: {} }), 
       createdBy: userId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -27,7 +27,7 @@ import {
     });
   }
   
-  // Get a single document by ID
+ 
   export async function getDocument(documentId) {
     const docRef = doc(db, 'documents', documentId);
     const docSnap = await getDoc(docRef);
@@ -39,7 +39,7 @@ import {
     }
   }
   
-  // Update document content
+ 
   export async function updateDocumentContent(documentId, contentState) {
     const docRef = doc(db, 'documents', documentId);
     return updateDoc(docRef, {
@@ -48,7 +48,7 @@ import {
     });
   }
   
-  // Get all documents available to a user
+  
   export async function getUserDocuments(userId) {
     const q = query(
       documentsCollection, 
@@ -62,7 +62,7 @@ import {
     }));
   }
   
-  // Add a collaborator to a document
+
   export async function addCollaborator(documentId, userId) {
     const docRef = doc(db, 'documents', documentId);
     const docSnap = await getDoc(docRef);
@@ -79,7 +79,7 @@ import {
     }
   }
   
-  // Delete a document
+ 
   export async function deleteDocument(documentId) {
     return deleteDoc(doc(db, 'documents', documentId));
   }

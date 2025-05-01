@@ -6,21 +6,21 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { mockAuthValue, setupCanvasMock } from '../test-utils';
 
-// Mock the auth context
+
 jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthValue
 }));
 
-// Mock document service
+
 jest.mock('../services/documentService', () => ({
   saveDrawing: jest.fn().mockResolvedValue(true),
   getDrawing: jest.fn().mockResolvedValue('data:image/png;base64,existingDrawingData')
 }));
 
-// Import mocked document service functions
+
 import { saveDrawing, getDrawing } from '../services/documentService';
 
-// Mock DrawingTool component
+
 const MockDrawingTool = ({ documentId, visible }) => {
   const [showDrawing, setShowDrawing] = React.useState(visible);
   const [loading, setLoading] = React.useState(true);
@@ -84,9 +84,9 @@ describe('DrawingTool Tests', () => {
     mockCanvas = setupCanvasMock();
   });
 
-  // Test 1: Creating new drawing
+ 
   test('Creating new drawing saves drawing data', async () => {
-    // Set up mock implementation for this test
+    
     saveDrawing.mockResolvedValue(true);
     getDrawing.mockResolvedValue('data:image/png;base64,existingDrawingData');
     
@@ -100,31 +100,31 @@ describe('DrawingTool Tests', () => {
       );
     });
 
-    // Verify drawing was initially loaded
+   
     expect(getDrawing).toHaveBeenCalledWith('doc1');
     
-    // Find canvas element
+   
     const canvas = screen.getByTestId('drawing-canvas');
     
-    // Simulate drawing actions
+   
     await act(async () => {
       fireEvent.mouseDown(canvas, { clientX: 100, clientY: 100 });
       fireEvent.mouseMove(canvas, { clientX: 150, clientY: 150 });
       fireEvent.mouseUp(canvas);
     });
     
-    // Save the drawing
+  
     await act(async () => {
       fireEvent.click(screen.getByTestId('save-button'));
     });
     
-    // Verify
+
     expect(saveDrawing).toHaveBeenCalledWith('doc1', 'data:image/png;base64,mockImageData');
   });
 
-  // Test 2: Loading existing drawing
+ 
   test('Loading existing drawing displays correctly', async () => {
-    // Set up mock implementation for this test
+ 
     getDrawing.mockResolvedValue('data:image/png;base64,existingDrawingData');
     
     await act(async () => {
@@ -137,14 +137,14 @@ describe('DrawingTool Tests', () => {
       );
     });
 
-    // Verify drawing was loaded
+ 
     expect(getDrawing).toHaveBeenCalledWith('doc1');
     expect(screen.getByTestId('drawing-canvas')).toBeInTheDocument();
   });
 
-  // Test 3: Clearing drawing
+
   test('Clearing drawing removes all content', async () => {
-    // Set up mock implementation for this test
+    
     getDrawing.mockResolvedValue('data:image/png;base64,existingDrawingData');
     
     await act(async () => {
@@ -157,22 +157,22 @@ describe('DrawingTool Tests', () => {
       );
     });
 
-    // Clear the drawing
+   
     await act(async () => {
       fireEvent.click(screen.getByTestId('clear-button'));
     });
     
-    // Verify
+   
     const context = mockCanvas.getContext();
     expect(context.clearRect).toHaveBeenCalled();
   });
 
-  // Test 4: Drawing tool visibility
+  
   test('Drawing tool visibility changes as expected', async () => {
-    // Set up mock implementation for this test
+ 
     getDrawing.mockResolvedValue('data:image/png;base64,existingDrawingData');
     
-    // Test with drawing tool hidden
+    
     const { rerender } = render(
       <BrowserRouter>
         <ThemeProvider>
@@ -181,11 +181,11 @@ describe('DrawingTool Tests', () => {
       </BrowserRouter>
     );
     
-    // Check that the drawing area is not visible
+   
     const drawingAreaHidden = screen.getByTestId('drawing-area');
     expect(drawingAreaHidden).toHaveStyle('display: none');
     
-    // Rerender with drawing tool visible
+   
     await act(async () => {
       rerender(
         <BrowserRouter>
@@ -196,7 +196,7 @@ describe('DrawingTool Tests', () => {
       );
     });
     
-    // Check that the drawing area is now visible
+ 
     const drawingAreaVisible = screen.getByTestId('drawing-area');
     expect(drawingAreaVisible).toHaveStyle('display: block');
   });

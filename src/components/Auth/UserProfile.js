@@ -147,7 +147,7 @@ function UserProfile() {
   const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
-    // Fetch user profile data when component mounts
+    
     if (currentUser) {
       fetchUserProfile();
     }
@@ -156,11 +156,11 @@ function UserProfile() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     
-    // Reset messages
+ 
     setError('');
     setSuccess('');
     
-    // Validate passwords
+    
     if (newPassword !== confirmPassword) {
       return setError('Passwords do not match');
     }
@@ -172,17 +172,17 @@ function UserProfile() {
     setLoading(true);
     
     try {
-      // Update password in Firebase Auth
+      
       await updatePassword(newPassword);
       
-      // Clear form and show success message
+      
       setNewPassword('');
       setConfirmPassword('');
       setSuccess('Password successfully updated');
     } catch (error) {
       console.error('Error updating password:', error);
       
-      // Handle specific errors
+      
       if (error.code === 'auth/requires-recent-login') {
         setError('For security reasons, please log out and log in again before changing your password');
       } else {

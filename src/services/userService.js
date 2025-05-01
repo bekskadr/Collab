@@ -27,7 +27,7 @@ export const getUserIdByEmail = async (email) => {
       throw new Error(`No user found with email: ${email}`);
     }
     
-    // Return the first matching user's ID
+
     return querySnapshot.docs[0].id;
   } catch (error) {
     console.error('Error getting user by email:', error);

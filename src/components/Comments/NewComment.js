@@ -123,7 +123,7 @@ const NewComment = ({ documentId, onCommentAdded, initialText = '', onCancel }) 
   };
   
   if (!currentUser) {
-    return null; // Don't render the form if user is not authenticated
+    return null; 
   }
   
   return (

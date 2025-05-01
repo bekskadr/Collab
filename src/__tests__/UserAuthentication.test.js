@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { mockAuthValue } from '../test-utils';
 
-// Mock Firebase Auth functions
+
 jest.mock('firebase/auth', () => ({
   createUserWithEmailAndPassword: jest.fn(),
   signInWithEmailAndPassword: jest.fn(),
@@ -9,12 +9,12 @@ jest.mock('firebase/auth', () => ({
   getAuth: jest.fn().mockReturnValue({})
 }));
 
-// Mock Firebase
+
 jest.mock('../firebase', () => ({
   auth: {}
 }));
 
-// Mock the auth service functions
+
 jest.mock('../services/authService', () => ({
   signup: jest.fn().mockImplementation(async (email, password) => {
     if (email === 'existing@example.com') {
@@ -37,7 +37,7 @@ jest.mock('../services/authService', () => ({
   })
 }));
 
-// Import the auth service functions after mocking
+
 import { signup, login, logout, resetPassword } from '../services/authService';
 
 describe('UserAuthentication Tests', () => {
@@ -45,12 +45,12 @@ describe('UserAuthentication Tests', () => {
     jest.clearAllMocks();
   });
 
-  // Test 1: User registration
+ 
   test('User registration with new email is successful', async () => {
     const email = 'new@example.com';
     const password = 'password123';
     
-    // Mock implementation for this test
+
     signup.mockResolvedValueOnce({ 
       user: { 
         email: email, 
@@ -65,12 +65,12 @@ describe('UserAuthentication Tests', () => {
     expect(result.user.uid).toBe('new-user-id');
   });
 
-  // Test 2: User registration with existing email fails
+ 
   test('User registration with existing email fails', async () => {
     const email = 'existing@example.com';
     const password = 'password123';
     
-    // Mock implementation for this test
+  
     const error = new Error('Email already in use');
     signup.mockRejectedValueOnce(error);
     
@@ -78,12 +78,12 @@ describe('UserAuthentication Tests', () => {
     expect(signup).toHaveBeenCalledWith(email, password);
   });
 
-  // Test 3: User login with correct credentials
+ 
   test('User login with correct credentials is successful', async () => {
     const email = 'valid@example.com';
     const password = 'correctPassword';
     
-    // Mock implementation for this test
+   
     login.mockResolvedValueOnce({ 
       user: {
         email: email,
@@ -98,12 +98,12 @@ describe('UserAuthentication Tests', () => {
     expect(result.user.uid).toBe('user-123');
   });
 
-  // Test 4: User login with incorrect credentials
+
   test('User login with incorrect credentials fails', async () => {
     const email = 'valid@example.com';
     const password = 'wrongPassword';
     
-    // Mock implementation for this test
+ 
     const error = new Error('Invalid email or password');
     login.mockRejectedValueOnce(error);
     
@@ -111,9 +111,9 @@ describe('UserAuthentication Tests', () => {
     expect(login).toHaveBeenCalledWith(email, password);
   });
 
-  // Test 5: User logout
+
   test('User logout is successful', async () => {
-    // Mock implementation for this test
+
     logout.mockResolvedValueOnce(true);
     
     const result = await logout();
@@ -122,11 +122,10 @@ describe('UserAuthentication Tests', () => {
     expect(result).toBe(true);
   });
 
-  // Test 6: Password reset for existing user
+  
   test('Password reset for existing user is successful', async () => {
     const email = 'valid@example.com';
     
-    // Mock implementation for this test
     resetPassword.mockResolvedValueOnce(true);
     
     const result = await resetPassword(email);
@@ -135,11 +134,11 @@ describe('UserAuthentication Tests', () => {
     expect(result).toBe(true);
   });
 
-  // Test 7: Password reset for non-existent user
+  
   test('Password reset for non-existent user fails', async () => {
     const email = 'nonexistent@example.com';
     
-    // Mock implementation for this test
+    
     const error = new Error('User not found');
     resetPassword.mockRejectedValueOnce(error);
     

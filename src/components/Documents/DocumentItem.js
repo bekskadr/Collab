@@ -121,7 +121,7 @@ function DocumentItem({ document, onDelete }) {
     });
   };
   
-  // Check if current user is the owner of the document
+  
   const isOwner = document.ownerId === currentUser.uid;
   
   return (

@@ -12,7 +12,7 @@ import Loading from './components/Common/Loading';
 import ThemeToggle from './components/Common/ThemeToggle';
 import './App.css';
 
-// Protected route component
+
 function RequireAuth({ children }) {
   const { currentUser, loading } = useAuth();
   
